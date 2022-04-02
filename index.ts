@@ -1,4 +1,4 @@
-import { app } from './src/app';
+import app from './src/app';
 import sequelize from './src/config/database';
 
 // initializing sequalize
