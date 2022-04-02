@@ -12,6 +12,8 @@
   "author": "Dindo Leonard",
   "license": "ISC",
   "dependencies": {
+    "@types/bcrypt": "^5.0.0",
+    "bcrypt": "^5.0.1",
     "express": "^4.17.3",
     "sequelize": "^6.17.0",
     "sqlite3": "^5.0.2",
@@ -41,7 +43,7 @@
   "eslintConfig": {
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
-      "ecmaVersion": 6
+      "ecmaVersion": 2018
     },
     "extends": [
       "eslint:recommended",
