@@ -2,7 +2,7 @@ import app from './src/app';
 import sequelize from './src/config/database';
 
 // initializing sequalize
-sequelize.sync();
+sequelize.sync({ force: true });
 
 console.log('env ' + process.env.NODE_ENV);
 
