@@ -88,4 +88,30 @@ describe('User Registration', () => {
 
     expect(body.validationErrors.username).toBe('Username cannot be null');
   });
+
+  it('returns E-mail cannot be null when email is null', async () => {
+    const response = await postUser({ username: 'user1', email: null, password: 'P4ssword' });
+
+    const responseBody = response.body as {
+      validationErrors: {
+        email: string;
+      };
+    };
+
+    expect(responseBody.validationErrors.email).toBe('E-mail cannot be null');
+  });
+
+  it('returns errors for both when username and email is null', async () => {
+    const response = await postUser({
+      username: null,
+      email: null,
+      password: 'P4ssword',
+    });
+
+    const body = response.body;
+
+    // order is important
+    // must use string for object keys or else it will prioritize the number keys first then the string afterwards
+    expect(Object.keys(body.validationErrors)).toEqual(['username', 'email']);
+  });
 });
