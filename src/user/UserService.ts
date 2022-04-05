@@ -15,8 +15,13 @@ const save = async (body: { username: string; email: string; password: string })
   await User.create(user);
 };
 
+const findByEmail = async (email: string) => {
+  return await User.findOne({ where: { email } });
+};
+
 const UserService = {
   save,
+  findByEmail,
 };
 
 export default UserService;
