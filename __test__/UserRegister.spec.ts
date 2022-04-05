@@ -17,7 +17,7 @@ const validUser = {
   password: 'P4ssword',
 };
 
-const postUser = (user: { username: string | null; email: string | null; password: string | null } = validUser) => {
+const postUser = (user: { username?: string | null; email?: string | null; password?: string | null } = validUser) => {
   return request(app).post('/api/1.0/users').send(user);
 };
 
@@ -81,26 +81,6 @@ describe('User Registration', () => {
     expect(body.validationErrors).not.toBeUndefined();
   });
 
-  it('returns Username cannot be null when username is null', async () => {
-    const response = await postUser({ username: null, email: 'email1@mail.com', password: 'P4ssword' });
-
-    const body = response.body;
-
-    expect(body.validationErrors.username).toBe('Username cannot be null');
-  });
-
-  it('returns E-mail cannot be null when email is null', async () => {
-    const response = await postUser({ username: 'user1', email: null, password: 'P4ssword' });
-
-    const responseBody = response.body as {
-      validationErrors: {
-        email: string;
-      };
-    };
-
-    expect(responseBody.validationErrors.email).toBe('E-mail cannot be null');
-  });
-
   it('returns errors for both when username and email is null', async () => {
     const response = await postUser({
       username: null,
@@ -114,4 +94,46 @@ describe('User Registration', () => {
     // must use string for object keys or else it will prioritize the number keys first then the string afterwards
     expect(Object.keys(body.validationErrors)).toEqual(['username', 'email']);
   });
+
+  // IMPORTANT DYNAMIC TEST
+  // it.each([
+  //   ['username', 'Username cannot be null'],
+  //   ['email', 'E-mail cannot be null'],
+  //   ['password', 'Password cannot be null'],
+  // ])('when %s is null %s is received', async (field, expectedMessage) => {
+  //   const user: { [key: string]: string | null } = {
+  //     username: 'user1',
+  //     email: 'user1@mail.com',
+  //     password: 'P4ssword',
+  //   } as { username?: string; email?: string | null; password?: string | null };
+
+  //   user[field] = null;
+
+  //   const response = await postUser(user);
+  //   const body = response.body;
+  //   expect(body.validationErrors[field]).toBe(expectedMessage);
+  // });
+
+  // IMPORTANT DYNAMIC TEST BACKTICKS
+  it.each`
+    field         | expectedMessage
+    ${'username'} | ${'Username cannot be null'}
+    ${'email'}    | ${'E-mail cannot be null'}
+    ${'password'} | ${'Password cannot be null'}
+  `(
+    'returns $expectedMessage when $field is null',
+    async ({ field, expectedMessage }: { field: string; expectedMessage: string }) => {
+      const user: { [key: string]: string | null } = {
+        username: 'user1',
+        email: 'user1@mail.com',
+        password: 'P4ssword',
+      } as { username?: string; email?: string | null; password?: string | null };
+
+      user[field] = null;
+
+      const response = await postUser(user);
+      const body = response.body;
+      expect(body.validationErrors[field]).toBe(expectedMessage);
+    }
+  );
 });
