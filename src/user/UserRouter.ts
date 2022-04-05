@@ -1,50 +1,32 @@
-import { Request, Response, NextFunction, Router } from 'express';
+import { Request, Response, Router } from 'express';
 import UserService from './UserService';
+import { check, validationResult } from 'express-validator';
 
 const router = Router();
 
-const validateUsername = (req: Request, res: Response, next: NextFunction) => {
-  //
+router.post(
+  '/api/1.0/users',
+  check('username').notEmpty().withMessage('Username cannot be null'),
+  check('email').notEmpty().withMessage('E-mail cannot be null'),
+  async (req: Request, res: Response) => {
+    const errors = validationResult(req);
 
-  const requestBody = req.body as { password: string; username: string; email: string };
+    if (!errors.isEmpty()) {
+      const validationErrors: { [key: string]: string } = {};
 
-  const { username } = requestBody;
+      errors.array().forEach((error) => {
+        validationErrors[error.param] = error.msg;
+      });
 
-  if (username === null) {
-    req.validationErrors = {
-      ...req.validationErrors,
-      username: 'Username cannot be null',
-    };
+      return res.status(400).send({ validationErrors });
+    }
+
+    const requestBody = req.body as { password: string; username: string; email: string };
+
+    await UserService.save(requestBody);
+
+    res.send({ message: 'User created' });
   }
-
-  next();
-};
-
-const validateEmail = (req: Request, res: Response, next: NextFunction) => {
-  const requestBody = req.body as { username?: string | null; password?: string | null; email?: string | null };
-
-  if (requestBody.email === null) {
-    req.validationErrors = {
-      ...req.validationErrors,
-      email: 'E-mail cannot be null',
-    };
-  }
-  next();
-};
-
-router.post('/api/1.0/users', validateUsername, validateEmail, async (req: Request, res: Response) => {
-  // will take care of validation errors
-  if (req.validationErrors) {
-    const response = { validationErrors: { ...req.validationErrors } };
-
-    res.status(400).send(response);
-  }
-
-  const requestBody = req.body as { password: string; username: string; email: string };
-
-  await UserService.save(requestBody);
-
-  res.send({ message: 'User created' });
-});
+);
 
 export default router;
