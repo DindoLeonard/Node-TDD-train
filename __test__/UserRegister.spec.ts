@@ -2,6 +2,7 @@ import request from 'supertest';
 import app from '../src/app';
 import User from '../src/user/User';
 import sequalize from '../src/config/database';
+import nodemailerStub from 'nodemailer-stub';
 
 beforeAll(() => {
   return sequalize.sync();
@@ -183,7 +184,6 @@ describe('User Registration', () => {
     await postUser(newUser);
     const users = await User.findAll();
     const savedUser = users[0];
-    console.log(savedUser);
     expect(savedUser.inactive).toBe(true);
   });
 
@@ -193,5 +193,17 @@ describe('User Registration', () => {
     const users = await User.findAll();
     const savedUser = users[0];
     expect(savedUser.activationToken).toBeTruthy();
+  });
+
+  // NODEMAILER TEST
+  it('sends activaton email with activationToken', async () => {
+    //
+    await postUser();
+    const lastMail = nodemailerStub.interactsWithMail.lastMail();
+    expect(lastMail.to[0]).toContain('user1@mail.com');
+
+    const users = await User.findAll();
+    const savedUser = users[0];
+    expect(lastMail.content).toContain(savedUser.activationToken);
   });
 });
