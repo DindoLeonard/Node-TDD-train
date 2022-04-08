@@ -15,6 +15,7 @@ const validUser = {
   username: 'user1',
   email: 'user1@mail.com',
   password: 'P4ssword',
+  inactive: undefined,
 };
 
 const postUser = (user: { username?: string | null; email?: string | null; password?: string | null } = validUser) => {
@@ -167,5 +168,30 @@ describe('User Registration', () => {
 
     const body = response.body;
     expect(Object.keys(body.validationErrors)).toEqual(['username', 'email']);
+  });
+
+  it('creates user in inactive mode', async () => {
+    await postUser();
+
+    const users = await User.findAll();
+    const savedUser = users[0];
+    expect(savedUser.inactive).toBe(true);
+  });
+
+  it('creates user in inactive mode even the request body contains inactive as false', async () => {
+    const newUser = { ...validUser, inactive: false };
+    await postUser(newUser);
+    const users = await User.findAll();
+    const savedUser = users[0];
+    console.log(savedUser);
+    expect(savedUser.inactive).toBe(true);
+  });
+
+  it('creates an activationToken for user', async () => {
+    await postUser();
+
+    const users = await User.findAll();
+    const savedUser = users[0];
+    expect(savedUser.activationToken).toBeTruthy();
   });
 });
