@@ -49,9 +49,14 @@ router.post(
     }
 
     const requestBody = req.body as { password: string; username: string; email: string };
-    await UserService.save(requestBody);
 
-    res.send({ message: 'User created' });
+    try {
+      await UserService.save(requestBody);
+
+      return res.send({ message: 'User created' });
+    } catch (err) {
+      return res.status(502).send({ message: 'E-mail Failure' });
+    }
   }
 );
 

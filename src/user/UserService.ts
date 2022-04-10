@@ -2,6 +2,8 @@ import bcrypt from 'bcrypt';
 import User from './User';
 import crypto from 'crypto';
 import EmailService from '../email/EmailService';
+import sequelize from '../config/database';
+import { EmailException } from '../email/EmailException';
 
 const generateToken = (length: number): string => {
   return crypto.randomBytes(length).toString('hex').substring(0, length);
@@ -21,9 +23,18 @@ const save = async (body: { username: string; email: string; password: string })
     activationToken: generateToken(16),
   };
 
-  await User.create(user);
+  const transaction = await sequelize.transaction();
 
-  await EmailService.sendAccountActivation(email, user.activationToken);
+  await User.create(user, { transaction });
+
+  try {
+    await EmailService.sendAccountActivation(email, user.activationToken);
+    await transaction.commit();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (err: any) {
+    await transaction.rollback();
+    throw EmailException();
+  }
 };
 
 const findByEmail = async (email: string) => {
