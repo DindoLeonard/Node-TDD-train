@@ -3,6 +3,7 @@ import app from '../src/app';
 import User from '../src/user/User';
 import sequalize from '../src/config/database';
 import nodemailerStub from 'nodemailer-stub';
+import EmailService from '../src/email/EmailService';
 
 beforeAll(() => {
   return sequalize.sync();
@@ -197,7 +198,6 @@ describe('User Registration', () => {
 
   // NODEMAILER TEST
   it('sends activaton email with activationToken', async () => {
-    //
     await postUser();
     const lastMail = nodemailerStub.interactsWithMail.lastMail();
     expect(lastMail.to[0]).toContain('user1@mail.com');
@@ -205,5 +205,35 @@ describe('User Registration', () => {
     const users = await User.findAll();
     const savedUser = users[0];
     expect(lastMail.content).toContain(savedUser.activationToken);
+  });
+
+  it('returns 502 Bad Gateway when sending email fails', async () => {
+    // If you want to overwrite the original function, you can use spyOn
+    const mockSendAccountActivation = jest
+      .spyOn(EmailService, 'sendAccountActivation')
+      .mockRejectedValue({ message: 'Failed to deliver email' });
+    const response = await postUser();
+    expect(response.status).toBe(502);
+
+    mockSendAccountActivation.mockRestore();
+  });
+
+  it('return Email failure message when sending email fails', async () => {
+    const mockSendAccountActivation = jest
+      .spyOn(EmailService, 'sendAccountActivation')
+      .mockRejectedValue({ message: 'Failed to deliver email' });
+    const response = await postUser();
+    mockSendAccountActivation.mockRestore();
+    expect(response.body.message).toBe('E-mail Failure');
+  });
+
+  it('does not save user to database if activation email when sending email fails', async () => {
+    const mockSendAccountActivation = jest
+      .spyOn(EmailService, 'sendAccountActivation')
+      .mockRejectedValue({ message: 'Failed to deliver email' });
+    await postUser();
+    mockSendAccountActivation.mockRestore();
+    const users = await User.findAll();
+    expect(users.length).toBe(0);
   });
 });
