@@ -2,15 +2,50 @@ import request from 'supertest';
 import app from '../src/app';
 import User from '../src/user/User';
 import sequalize from '../src/config/database';
-import nodemailerStub from 'nodemailer-stub';
-import EmailService from '../src/email/EmailService';
+// import nodemailerStub from 'nodemailer-stub';
+// import EmailService from '../src/email/EmailService';
+import { SMTPServer } from 'smtp-server';
 
-beforeAll(() => {
-  return sequalize.sync();
+let lastMail: string;
+let server: SMTPServer;
+let simulateSmtpFailure = false;
+
+beforeAll(async () => {
+  server = new SMTPServer({
+    authOptional: true,
+    onData(stream, _session, callback) {
+      let mailBody: string;
+
+      stream.on('data', (data) => {
+        mailBody += data.toString();
+      });
+
+      stream.on('end', () => {
+        if (simulateSmtpFailure) {
+          const err = new Error('Invalid mailbox') as Error & { responseCode: number };
+
+          err.responseCode = 553;
+          return callback(err);
+        }
+
+        lastMail = mailBody;
+        callback();
+      });
+    },
+  });
+
+  await server.listen(8587, 'localhost');
+
+  await sequalize.sync();
 });
 
 beforeEach(() => {
+  simulateSmtpFailure = false;
   return User.destroy({ truncate: true });
+});
+
+afterAll(async () => {
+  await server.close();
 });
 
 const validUser = {
@@ -197,42 +232,67 @@ describe('User Registration', () => {
   });
 
   // NODEMAILER TEST
-  it('sends activaton email with activationToken', async () => {
+  it('sends an Account activaton email with activationToken', async () => {
+    // await postUser();
+    // const lastMail = nodemailerStub.interactsWithMail.lastMail();
+    // expect(lastMail.to[0]).toContain('user1@mail.com');
+
+    // const users = await User.findAll();
+    // const savedUser = users[0];
+    // expect(lastMail.content).toContain(savedUser.activationToken);
+
     await postUser();
-    const lastMail = nodemailerStub.interactsWithMail.lastMail();
-    expect(lastMail.to[0]).toContain('user1@mail.com');
+
+    // const lastMail = nodemailerStub.interactsWithMail.lastMail();
 
     const users = await User.findAll();
     const savedUser = users[0];
-    expect(lastMail.content).toContain(savedUser.activationToken);
+
+    expect(lastMail).toContain('user1@mail.com');
+    expect(lastMail).toContain(savedUser.activationToken);
   });
 
   it('returns 502 Bad Gateway when sending email fails', async () => {
     // If you want to overwrite the original function, you can use spyOn
-    const mockSendAccountActivation = jest
-      .spyOn(EmailService, 'sendAccountActivation')
-      .mockRejectedValue({ message: 'Failed to deliver email' });
-    const response = await postUser();
-    expect(response.status).toBe(502);
+    // const mockSendAccountActivation = jest
+    //   .spyOn(EmailService, 'sendAccountActivation')
+    //   .mockRejectedValue({ message: 'Failed to deliver email' });
+    // const response = await postUser();
+    // expect(response.status).toBe(502);
 
-    mockSendAccountActivation.mockRestore();
+    // mockSendAccountActivation.mockRestore();
+
+    // with nodemailer smtp server
+    simulateSmtpFailure = true;
+
+    const response = await postUser();
+
+    expect(response.status).toBe(502);
   });
 
   it('return Email failure message when sending email fails', async () => {
-    const mockSendAccountActivation = jest
-      .spyOn(EmailService, 'sendAccountActivation')
-      .mockRejectedValue({ message: 'Failed to deliver email' });
+    // with mocks
+    // const mockSendAccountActivation = jest
+    //   .spyOn(EmailService, 'sendAccountActivation')
+    //   .mockRejectedValue({ message: 'Failed to deliver email' });
+    // const response = await postUser();
+    // mockSendAccountActivation.mockRestore();
+    // expect(response.body.message).toBe('E-mail Failure');
+
+    // with smtp server
+    simulateSmtpFailure = true;
     const response = await postUser();
-    mockSendAccountActivation.mockRestore();
     expect(response.body.message).toBe('E-mail Failure');
   });
 
   it('does not save user to database if activation email when sending email fails', async () => {
-    const mockSendAccountActivation = jest
-      .spyOn(EmailService, 'sendAccountActivation')
-      .mockRejectedValue({ message: 'Failed to deliver email' });
-    await postUser();
-    mockSendAccountActivation.mockRestore();
+    // const mockSendAccountActivation = jest
+    //   .spyOn(EmailService, 'sendAccountActivation')
+    //   .mockRejectedValue({ message: 'Failed to deliver email' });
+    // await postUser();
+    // mockSendAccountActivation.mockRestore();
+    simulateSmtpFailure = true;
+
     const users = await User.findAll();
     expect(users.length).toBe(0);
   });
