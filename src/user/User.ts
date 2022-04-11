@@ -6,7 +6,7 @@ class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   declare email: string;
   declare password: string;
   declare inactive: boolean | undefined;
-  declare activationToken: string | undefined;
+  declare activationToken: string | undefined | null;
 }
 
 User.init(

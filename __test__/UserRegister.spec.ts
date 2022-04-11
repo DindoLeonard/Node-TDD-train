@@ -297,3 +297,113 @@ describe('User Registration', () => {
     expect(users.length).toBe(0);
   });
 });
+
+// ACCOUNT ACTIVATION
+
+describe('Account Activation', () => {
+  it('activates the account when correct token is set', async () => {
+    //
+
+    await postUser();
+
+    let users = await User.findAll();
+    const token = users[0].activationToken;
+
+    await request(app)
+      .post('/api/1.0/users/token/' + token)
+      .send();
+
+    users = await User.findAll();
+
+    expect(users[0].inactive).toBe(false);
+  });
+
+  it('removes the token from user after succesful activation', async () => {
+    await request(app).post('/api/1.0/users').send({
+      username: 'user1',
+      email: 'user1@mail.com',
+      password: 'P4ssword',
+      inactive: undefined,
+    });
+
+    let users = await User.findAll();
+    const token = users[0].activationToken;
+
+    await request(app).post('/api/1.0/users/token/' + token);
+    users = await User.findAll();
+
+    expect(users[0].activationToken).toBeFalsy();
+  });
+
+  it('does not activate account when token is wrong', async () => {
+    // await request(app).post('/api/1.0/users').send({
+    //   username: 'user1',
+    //   password: 'P4ssword',
+    //   email: 'user1@mail.com',
+    //   inactive: undefined,
+    // });
+
+    await postUser();
+    const token = 'this-token-does-not-exist';
+
+    await request(app)
+      .post('/api/1.0/users/token/' + token)
+      .send();
+
+    const users = await User.findAll();
+    expect(users[0].inactive).toBe(true);
+  });
+
+  it('returns bad request when token is wrong', async () => {
+    await postUser();
+
+    const falseToken = 'this-token-does-not-exist';
+
+    const response = await request(app)
+      .post('/api/1.0/users/token/' + falseToken)
+      .send();
+
+    expect(response.status).toBe(400);
+  });
+
+  it('returns This account is either active or the active token is invalid', async () => {
+    await request(app).post('/api/1.0/users').send({
+      username: 'user1',
+      email: 'user1@mail.com',
+      password: 'P4ssword',
+      inactive: undefined,
+    });
+
+    const falseToken = 'this-token-does-not-exist';
+
+    const response = await request(app)
+      .post('/api/1.0/users/token/' + falseToken)
+      .send();
+
+    expect(response.body.message).toBe('This account is either active or the active token is invalid');
+  });
+
+  it.each`
+    tokenStatus  | message
+    ${'wrong'}   | ${'This account is either active or the active token is invalid'}
+    ${'correct'} | ${'Account is activated'}
+  `('return $message when token is $tokenStatus', async ({ tokenStatus, message }) => {
+    await request(app).post('/api/1.0/users').send({
+      username: 'user1',
+      email: 'user1@mail.com',
+      password: 'P4ssword',
+      inactive: undefined,
+    });
+
+    let token: string | undefined | null = 'this-token-does-not-exist';
+
+    if (tokenStatus === 'correct') {
+      const users = await User.findAll();
+      token = users[0].activationToken;
+    }
+
+    const response = await request(app).post('/api/1.0/users/token/' + token);
+
+    expect(response.body.message).toBe(message);
+  });
+});

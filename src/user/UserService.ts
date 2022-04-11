@@ -41,9 +41,23 @@ const findByEmail = async (email: string) => {
   return await User.findOne({ where: { email } });
 };
 
+const activate = async (token: string) => {
+  const user = await User.findOne({ where: { activationToken: token } });
+
+  if (!user) {
+    throw new Error('This account is either active or the active token is invalid');
+  }
+
+  user.inactive = false;
+  user.activationToken = null;
+
+  await user.save();
+};
+
 const UserService = {
   save,
   findByEmail,
+  activate,
 };
 
 export default UserService;
