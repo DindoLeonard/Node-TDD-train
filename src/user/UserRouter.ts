@@ -60,4 +60,19 @@ router.post(
   }
 );
 
+router.post('/api/1.0/users/token/:token', async (req: Request, res: Response) => {
+  try {
+    const token = req.params.token;
+
+    await UserService.activate(token);
+
+    res.send({ message: 'Account is activated' });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (err: any) {
+    res.status(400).send({
+      message: 'This account is either active or the active token is invalid',
+    });
+  }
+});
+
 export default router;
