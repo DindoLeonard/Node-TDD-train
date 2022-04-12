@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import EmailService from '../email/EmailService';
 import sequelize from '../config/database';
 import { EmailException } from '../email/EmailException';
+import HttpException from '../errors/HttpException';
 
 const generateToken = (length: number): string => {
   return crypto.randomBytes(length).toString('hex').substring(0, length);
@@ -33,7 +34,8 @@ const save = async (body: { username: string; email: string; password: string })
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     await transaction.rollback();
-    throw EmailException();
+    // throw EmailException();
+    throw new HttpException(502, 'E-mail Failure');
   }
 };
 
@@ -45,7 +47,7 @@ const activate = async (token: string) => {
   const user = await User.findOne({ where: { activationToken: token } });
 
   if (!user) {
-    throw new Error('This account is either active or the active token is invalid');
+    throw new HttpException(400, 'This account is either active or the active token is invalid');
   }
 
   user.inactive = false;

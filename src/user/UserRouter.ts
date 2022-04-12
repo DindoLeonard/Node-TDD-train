@@ -1,6 +1,7 @@
-import { Request, Response, Router } from 'express';
+import { NextFunction, Request, Response, Router } from 'express';
 import UserService from './UserService';
 import { check, validationResult } from 'express-validator';
+import HttpException from '../errors/HttpException';
 
 const router = Router();
 
@@ -35,43 +36,44 @@ router.post(
     .bail()
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/)
     .withMessage('Password must have at least 1 uppercase, 1 lowercase letter and 1 number'),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
 
-    if (!errors.isEmpty()) {
-      const validationErrors: { [key: string]: string } = {};
-
-      errors.array().forEach((error) => {
-        validationErrors[error.param] = error.msg;
-      });
-
-      return res.status(400).send({ validationErrors });
-    }
-
-    const requestBody = req.body as { password: string; username: string; email: string };
-
     try {
+      if (!errors.isEmpty()) {
+        // const validationErrors: { [key: string]: string } = {};
+
+        // errors.array().forEach((error) => {
+        //   validationErrors[error.param] = error.msg;
+        // });
+
+        // return res.status(400).send({ validationErrors });
+        throw new HttpException(400, '', errors.array());
+      }
+
+      const requestBody = req.body as { password: string; username: string; email: string };
+
       await UserService.save(requestBody);
 
       return res.send({ message: 'User created' });
     } catch (err) {
-      return res.status(502).send({ message: 'E-mail Failure' });
+      next(err);
     }
   }
 );
 
-router.post('/api/1.0/users/token/:token', async (req: Request, res: Response) => {
+router.post('/api/1.0/users/token/:token', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const token = req.params.token;
 
     await UserService.activate(token);
 
-    res.send({ message: 'Account is activated' });
+    res.send({
+      message: 'Account is activated',
+    });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
-    res.status(400).send({
-      message: 'This account is either active or the active token is invalid',
-    });
+    next(err);
   }
 });
 
