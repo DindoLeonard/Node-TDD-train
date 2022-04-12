@@ -1,6 +1,6 @@
-import express, { NextFunction, Request, Response } from 'express';
+import express from 'express';
 import ErrorHandler from './errors/ErrorHandler';
-import HttpException from './errors/HttpException';
+// import HttpException from './errors/HttpException';
 import UserRouter from './user/UserRouter';
 
 const app = express();
