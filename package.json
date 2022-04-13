@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node build/index.js",
     "dev": "cross-env NODE_ENV=development nodemon --watch './**/*.ts' --exec 'ts-node' index.ts",
-    "test": "cross-env NODE_ENV=test jest --watch --verbose",
+    "test": "cross-env NODE_ENV=test jest --watch",
     "lint": "eslint ."
   },
   "author": "Dindo Leonard",

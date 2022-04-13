@@ -80,7 +80,11 @@ router.post('/api/1.0/users/token/:token', async (req: Request, res: Response, n
 router.get('/api/1.0/users', async (req: Request, res: Response, next: NextFunction) => {
   try {
     //
-    const users = await UserService.getUsers();
+    let page = req.query.page ? Number.parseInt(req.query.page as string) : 0;
+    if (page < 0) {
+      page = 0;
+    }
+    const users = await UserService.getUsers(page);
 
     res.send(users);
   } catch (err) {
