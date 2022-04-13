@@ -56,10 +56,20 @@ const activate = async (token: string) => {
   await user.save();
 };
 
+const getUsers = async () => {
+  return {
+    content: [],
+    page: 0,
+    size: 10,
+    totalPages: 0,
+  };
+};
+
 const UserService = {
   save,
   findByEmail,
   activate,
+  getUsers,
 };
 
 export default UserService;
