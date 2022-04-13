@@ -4,6 +4,10 @@ declare global {
   namespace Express {
     interface Request {
       validationErrors: ValidationErrors;
+      pagination: {
+        size: number;
+        page: number;
+      };
     }
   }
 }
