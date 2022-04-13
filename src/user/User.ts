@@ -1,7 +1,8 @@
-import { Model, DataTypes, InferAttributes, InferCreationAttributes } from 'sequelize';
+import { Model, DataTypes, InferAttributes, InferCreationAttributes, CreationOptional } from 'sequelize';
 import sequelize from '../config/database';
 
 class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+  declare id?: CreationOptional<number>;
   declare username: string;
   declare email: string;
   declare password: string;

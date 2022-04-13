@@ -137,3 +137,72 @@ describe('Listing Users', () => {
     expect(response.body.page).toBe(0);
   });
 });
+
+describe('Get User', () => {
+  //
+  const getUser = async (id = 5) => {
+    return request(app).get('/api/1.0/users/' + id);
+  };
+
+  it('returns 404 when user not found', async () => {
+    const response = await request(app).get('/api/1.0/users/5');
+    expect(response.status).toBe(404);
+  });
+
+  it('returns User not found for unknown user', async () => {
+    //
+
+    const response = await request(app).get('/api/1.0/users/5');
+    expect(response.body.message).toBe('User not found');
+  });
+
+  it('returns proper error body when user not found', async () => {
+    //
+    const nowInMilliseconds = new Date().getTime();
+    const response = await request(app).get('/api/1.0/users/5');
+    const error = response.body;
+
+    expect(error.path).toBe('/api/1.0/users/5');
+    expect(error.timestamp).toBeGreaterThan(nowInMilliseconds);
+    expect(Object.keys(error)).toEqual(['path', 'timestamp', 'message']);
+  });
+
+  it('returns 200 when an active user exists', async () => {
+    const user = await User.create({
+      username: 'user1',
+      email: 'user1@mail.com',
+      password: 'P4ssword',
+      inactive: false,
+    });
+
+    const response = await getUser(user.id);
+
+    expect(response.status).toBe(200);
+  });
+
+  it('returns id, username, and email in response body when an active user exist', async () => {
+    //
+    const user = await User.create({
+      username: 'user1',
+      email: 'user1@mail.com',
+      password: 'P4ssword',
+      inactive: false,
+    });
+
+    const response = await getUser(user.id);
+    expect(Object.keys(response.body)).toEqual(['id', 'username', 'email']);
+  });
+
+  it('returns 404 when the user is inactive', async () => {
+    //
+    const user = await User.create({
+      username: 'user1',
+      email: 'use1@mail.com',
+      password: 'P4ssword',
+      inactive: true,
+    });
+
+    const response = await getUser(user.id);
+    expect(response.status).toBe(404);
+  });
+});

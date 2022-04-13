@@ -75,11 +75,22 @@ const getUsers = async (page = 0, size = 10) => {
   };
 };
 
+const getUser = async (id: string) => {
+  const user = await User.findOne({ where: { id: id, inactive: false }, attributes: ['id', 'username', 'email'] });
+
+  if (!user) {
+    throw new HttpException(404, 'User not found');
+  }
+
+  return user;
+};
+
 const UserService = {
   save,
   findByEmail,
   activate,
   getUsers,
+  getUser,
 };
 
 export default UserService;
