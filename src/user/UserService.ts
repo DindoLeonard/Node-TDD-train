@@ -3,7 +3,7 @@ import User from './User';
 import crypto from 'crypto';
 import EmailService from '../email/EmailService';
 import sequelize from '../config/database';
-import { EmailException } from '../email/EmailException';
+// import { EmailException } from '../email/EmailException';
 import HttpException from '../errors/HttpException';
 
 const generateToken = (length: number): string => {

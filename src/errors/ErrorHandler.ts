@@ -13,7 +13,18 @@ const ErrorHandler = async (error: HttpException, req: Request, res: Response, _
     });
   }
 
-  return res.status(error.status).send({ message: error.message, validationErrors });
+  // will be undefined if object is empty
+  const validationErrorObjectOrUndefined =
+    Object.keys(validationErrors).length === 0 && validationErrors.constructor === Object
+      ? undefined
+      : validationErrors;
+
+  return res.status(error.status).send({
+    path: req.originalUrl,
+    timestamp: new Date().getTime(),
+    message: error.message,
+    validationErrors: validationErrorObjectOrUndefined,
+  });
 };
 
 export default ErrorHandler;

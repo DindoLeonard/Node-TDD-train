@@ -296,6 +296,18 @@ describe('User Registration', () => {
     const users = await User.findAll();
     expect(users.length).toBe(0);
   });
+
+  it('returns Validation Failure message in error response body when validation fails', async () => {
+    //
+    const response = await request(app).post('/api/1.0/users').send({
+      username: null,
+      email: 'user1@mail.com',
+      password: 'P4ssword',
+      inactive: undefined,
+    });
+
+    expect(response.body.message).toBe('Validation Failure');
+  });
 });
 
 // ACCOUNT ACTIVATION
@@ -405,5 +417,80 @@ describe('Account Activation', () => {
     const response = await request(app).post('/api/1.0/users/token/' + token);
 
     expect(response.body.message).toBe(message);
+  });
+});
+
+describe('Error Model', () => {
+  //
+  it('returns path, timestamp, message and validationErrors in response when validation failure', async () => {
+    //
+    const response = await request(app).post('/api/1.0/users').send({
+      username: null,
+      email: 'user1@mail.com',
+      password: 'P4ssword',
+      inactive: undefined,
+    });
+
+    const body = response.body;
+
+    expect(Object.keys(body)).toEqual(['path', 'timestamp', 'message', 'validationErrors']);
+  });
+
+  it('returns path, timestamp and message in response when request fails other than validation error', async () => {
+    //
+    const response = await request(app).post('/api/1.0/users').send({
+      username: 'user1',
+      email: 'user1@mail.com',
+      password: 'P4ssword',
+      inactive: undefined,
+    });
+
+    expect(response.body.message).toBe('User created');
+
+    const falseToken = 'this-token-does-not-exist';
+    const sendTokenResponse = await request(app)
+      .post('/api/1.0/users/token/' + falseToken)
+      .send();
+
+    const body = sendTokenResponse.body;
+
+    expect(Object.keys(body)).toEqual(['path', 'timestamp', 'message']);
+  });
+
+  it('returns path is error body', async () => {
+    //
+    const invalidToken = 'this-token-does-not-exist';
+    const response = await request(app)
+      .post('/api/1.0/users/token/' + invalidToken)
+      .send({
+        username: 'user1',
+        email: 'user1@mail.com',
+        password: 'P4ssword',
+        inactive: undefined,
+      });
+
+    const body = response.body;
+
+    expect(body.path).toEqual('/api/1.0/users/token/' + invalidToken);
+  });
+
+  it('returns timestamp in milliseconds within 5 seconds value in error body', async () => {
+    //
+    const nowInMilliseconds = new Date().getTime();
+    const fiveSecondsLater = nowInMilliseconds + 5 * 1000;
+    const invalidToken = 'this-token-does-not-exist';
+    const response = await request(app)
+      .post('/api/1.0/users/token/' + invalidToken)
+      .send({
+        username: 'user1',
+        email: 'user1@mail.com',
+        password: 'P4ssword',
+        inactive: undefined,
+      });
+
+    const body = response.body;
+
+    expect(body.timestamp).toBeGreaterThan(nowInMilliseconds);
+    expect(body.timestamp).toBeLessThan(fiveSecondsLater);
   });
 });
