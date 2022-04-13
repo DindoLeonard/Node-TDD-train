@@ -91,4 +91,14 @@ router.get('/api/1.0/users', pagination, async (req: Request, res: Response, nex
   }
 });
 
+router.get('/api/1.0/users/:id', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = await UserService.getUser(req.params.id);
+
+    res.send(user);
+  } catch (err) {
+    next(err);
+  }
+});
+
 export default router;
