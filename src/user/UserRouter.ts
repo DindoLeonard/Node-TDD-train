@@ -2,6 +2,7 @@ import { NextFunction, Request, Response, Router } from 'express';
 import UserService from './UserService';
 import { check, validationResult } from 'express-validator';
 import HttpException from '../errors/HttpException';
+import pagination from '../middleware/pagination';
 
 const router = Router();
 
@@ -77,14 +78,12 @@ router.post('/api/1.0/users/token/:token', async (req: Request, res: Response, n
   }
 });
 
-router.get('/api/1.0/users', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/api/1.0/users', pagination, async (req: Request, res: Response, next: NextFunction) => {
   try {
     //
-    let page = req.query.page ? Number.parseInt(req.query.page as string) : 0;
-    if (page < 0) {
-      page = 0;
-    }
-    const users = await UserService.getUsers(page);
+    const { page, size } = req.pagination;
+
+    const users = await UserService.getUsers(page, size);
 
     res.send(users);
   } catch (err) {
