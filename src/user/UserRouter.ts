@@ -48,7 +48,7 @@ router.post(
         // });
 
         // return res.status(400).send({ validationErrors });
-        throw new HttpException(400, '', errors.array());
+        throw new HttpException(400, 'Validation Failure', errors.array());
       }
 
       const requestBody = req.body as { password: string; username: string; email: string };
