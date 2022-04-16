@@ -9,8 +9,8 @@ beforeAll(async () => {
 });
 
 // clearing the user table before each test
-beforeEach(() => {
-  return User.destroy({ truncate: true });
+beforeEach(async () => {
+  await User.destroy({ truncate: true });
 });
 
 const getUsers = () => {
