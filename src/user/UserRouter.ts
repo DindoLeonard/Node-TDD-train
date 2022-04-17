@@ -4,6 +4,8 @@ import { check, validationResult } from 'express-validator';
 import HttpException from '../errors/HttpException';
 import pagination from '../middleware/pagination';
 import ForbiddenException from '../errors/ForbiddenException';
+// import bcrypt from 'bcrypt';
+import basicAuthentication from '../middleware/basicAuthentication';
 
 const router = Router();
 
@@ -102,13 +104,17 @@ router.get('/api/1.0/users/:id', async (req: Request, res: Response, next: NextF
   }
 });
 
-router.put('/api/1.0/users/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.put('/api/1.0/users/:id', basicAuthentication, async (req: Request, res: Response, next: NextFunction) => {
   //
-  try {
-    throw new ForbiddenException();
-  } catch (err) {
-    next(err);
+  const authenticatedUser = req.authenticatedUser;
+
+  if (!authenticatedUser || authenticatedUser.id !== Number(req.params.id)) {
+    return next(new ForbiddenException());
   }
+
+  await UserService.updateUser(req.params.id, req.body);
+
+  return res.send();
 });
 
 export default router;

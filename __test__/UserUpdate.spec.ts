@@ -111,4 +111,25 @@ describe('User Update', () => {
 
     expect(response.status).toBe(403);
   });
+
+  it('returns 200 ok when valid update request sent from authorized user', async () => {
+    //
+    const savedUser = await addUser();
+    const validUpdate = { username: 'user1-updated' };
+    const response = await putUser(savedUser.id, validUpdate, {
+      auth: { email: 'user1@mail.com', password: 'P4ssword' },
+    });
+    expect(response.status).toBe(200);
+  });
+
+  it('updated username in database when valid request request is sent from authorized user', async () => {
+    //
+    const savedUser = await addUser();
+    const validUpdate = { username: 'user1-updated' };
+
+    await putUser(savedUser.id, validUpdate, { auth: { email: 'user1@mail.com', password: 'P4ssword' } });
+
+    const inDBUser = await User.findOne({ where: { id: savedUser.id } });
+    expect(inDBUser?.username).toBe(validUpdate.username);
+  });
 });
