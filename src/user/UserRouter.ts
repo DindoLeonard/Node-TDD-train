@@ -81,18 +81,24 @@ router.post('/api/1.0/users/token/:token', async (req: Request, res: Response, n
   }
 });
 
-router.get('/api/1.0/users', pagination, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    //
-    const { page, size } = req.pagination;
+router.get(
+  '/api/1.0/users',
+  pagination,
+  basicAuthentication,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const authenticatedUser = req.authenticatedUser;
+      //
+      const { page, size } = req.pagination;
 
-    const users = await UserService.getUsers(page, size);
+      const users = await UserService.getUsers(page, size, authenticatedUser);
 
-    res.send(users);
-  } catch (err) {
-    next(err);
+      res.send(users);
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
 router.get('/api/1.0/users/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
