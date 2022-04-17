@@ -85,12 +85,23 @@ const getUser = async (id: string) => {
   return user;
 };
 
+const updateUser = async (id: string, updatedBody: { username: string; email: string; inactive: string }) => {
+  //
+  const user = await User.findOne({ where: { id } });
+
+  if (user) {
+    user.username = updatedBody.username;
+    await user?.save();
+  }
+};
+
 const UserService = {
   save,
   findByEmail,
   activate,
   getUsers,
   getUser,
+  updateUser,
 };
 
 export default UserService;
