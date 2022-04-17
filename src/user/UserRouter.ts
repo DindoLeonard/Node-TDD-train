@@ -3,6 +3,7 @@ import UserService from './UserService';
 import { check, validationResult } from 'express-validator';
 import HttpException from '../errors/HttpException';
 import pagination from '../middleware/pagination';
+import ForbiddenException from '../errors/ForbiddenException';
 
 const router = Router();
 
@@ -96,6 +97,15 @@ router.get('/api/1.0/users/:id', async (req: Request, res: Response, next: NextF
     const user = await UserService.getUser(req.params.id);
 
     res.send(user);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.put('/api/1.0/users/:id', async (req: Request, res: Response, next: NextFunction) => {
+  //
+  try {
+    throw new ForbiddenException();
   } catch (err) {
     next(err);
   }
