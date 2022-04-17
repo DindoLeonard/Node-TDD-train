@@ -37,6 +37,11 @@ beforeAll(async () => {
   await server.listen(8587, 'localhost');
 
   await sequalize.sync();
+
+  /**
+   * SETTING TIMEOUT FOR TEST
+   */
+  jest.setTimeout(20000);
 });
 
 beforeEach(async () => {
@@ -45,6 +50,7 @@ beforeEach(async () => {
 });
 
 afterAll(async () => {
+  jest.setTimeout(5000);
   await server.close();
 });
 

@@ -1,0 +1,114 @@
+import request from 'supertest';
+import app from '../src/app';
+import User from '../src/user/User';
+import sequelize from '../src/config/database';
+import bcrypt from 'bcrypt';
+
+beforeAll(async () => {
+  await sequelize.sync();
+});
+
+beforeEach(async () => {
+  await User.destroy({ truncate: true });
+});
+
+const activeUser = { username: 'user1', email: 'user1@mail.com', password: 'P4ssword', inactive: false };
+
+const addUser = async (user = { ...activeUser }) => {
+  const hash = await bcrypt.hash(user.password, 10);
+  user.password = hash;
+  return await User.create(user);
+};
+
+const putUser = async (
+  id = 5,
+  body: null | {
+    username?: string | null;
+    password?: string | null;
+    email?: string | null;
+    inactive?: boolean | null;
+  } = null,
+  options: {
+    auth?: {
+      email: string;
+      password: string;
+    };
+  } = {}
+) => {
+  //
+  const agent = request(app).put('/api/1.0/users/' + id);
+
+  // BASIC AUTHORIZATION CREATION - IMPORTANT
+  if (options.auth) {
+    const { email, password } = options.auth;
+
+    /**
+     * MANUAL WAY
+     */
+    // const merged = `${email}: ${password}`;
+    // const base64 = Buffer.from(merged).toString('base64');
+    // agent.set('Authorization', `Basic ${base64}`);
+
+    /**
+     * SUPERTEST ABSTRACTION
+     */
+    agent.auth(email, password);
+  }
+
+  return agent.send({ ...body });
+};
+
+describe('User Update', () => {
+  //
+  it('returns forbidden when request sent without basic authorization', async () => {
+    //
+    const response = await putUser();
+    expect(response.status).toBe(403);
+  });
+
+  it('returns error body with "You are not authorized to update user" for unauthorized request', async () => {
+    //
+    const nowInMilliseconds = new Date().getTime();
+    const response = await putUser(5, null);
+
+    expect(response.body.path).toBe('/api/1.0/users/5');
+    expect(response.body.timestamp).toBeGreaterThan(nowInMilliseconds);
+    expect(response.body.message).toBe('You are not authorized to update user');
+  });
+
+  it('returns forbidden when request sent with incorrect email in basic authorization', async () => {
+    //
+    await addUser();
+    const response = await putUser(5, null, { auth: { email: 'user1000@mail.com', password: 'P4ssword' } });
+    expect(response.status).toBe(403);
+  });
+
+  it('returns forbidden when request send with incorrect password in basic authorization', async () => {
+    //
+    await addUser();
+    const response = await putUser(5, null, { auth: { email: 'user1@mail.com', password: 'WrongPassword' } });
+    expect(response.status).toBe(403);
+  });
+
+  it('returns forbidden when update request is sent with correct credentials but for different user', async () => {
+    //
+    await addUser();
+
+    const userToBeUpdated = await addUser({ ...activeUser, username: 'user2', email: 'user2@mail.com' });
+
+    const response = await putUser(userToBeUpdated.id, null, {
+      auth: { email: 'user1@mail.com', password: 'P4ssword' },
+    });
+
+    expect(response.status).toBe(403);
+  });
+
+  it('returns forbidden when update request is sent by inactive user with correct credentials for its own user', async () => {
+    //
+    const inactiveUser = await addUser({ ...activeUser, inactive: true });
+
+    const response = await putUser(inactiveUser.id, null, { auth: { email: 'user1@mail.com', password: 'P4ssword' } });
+
+    expect(response.status).toBe(403);
+  });
+});

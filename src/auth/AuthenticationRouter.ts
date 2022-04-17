@@ -6,7 +6,7 @@ import { check, validationResult } from 'express-validator';
 
 const router = express.Router();
 
-router.post('/api/1.0/auth', check('email').isEmail(), async (req, res: Response, next: NextFunction) => {
+router.post('/api/1.0/auth', check('email').isEmail(), async (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
 
   const { email, password } = req.body as { email: string; password: string };
