@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import User from './User';
 import crypto from 'crypto';
 import EmailService from '../email/EmailService';
+import Sequelize from 'sequelize';
 import sequelize from '../config/database';
 // import { EmailException } from '../email/EmailException';
 import HttpException from '../errors/HttpException';
@@ -56,11 +57,16 @@ const activate = async (token: string) => {
   await user.save();
 };
 
-const getUsers = async (page = 0, size = 10) => {
+const getUsers = async (page = 0, size = 10, authenticatedUser: User) => {
   //
+  const id = authenticatedUser ? authenticatedUser.id : 0;
+
   const users = await User.findAndCountAll({
     where: {
       inactive: false,
+      id: {
+        [Sequelize.Op.not]: id,
+      },
     },
     attributes: ['id', 'username', 'email'],
     limit: size,

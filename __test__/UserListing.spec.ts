@@ -2,6 +2,7 @@ import request from 'supertest';
 import app from '../src/app';
 import User from '../src/user/User';
 import sequelize from '../src/config/database';
+import bcrypt from 'bcrypt';
 
 // creating all database before all test
 beforeAll(async () => {
@@ -13,16 +14,25 @@ beforeEach(async () => {
   await User.destroy({ truncate: true });
 });
 
-const getUsers = () => {
-  return request(app).get('/api/1.0/users');
+const getUsers = (options: { auth?: { email: string; password: string } } = {}) => {
+  const agent = request(app).get('/api/1.0/users');
+
+  if (options.auth) {
+    const { email, password } = options.auth;
+    agent.auth(email, password);
+  }
+
+  return agent;
 };
 
 const addUsers = async (activeUserCount: number, inactiveUserCount = 0) => {
+  const hash = await bcrypt.hash('P4ssword', 10);
+
   for (let i = 0; i < activeUserCount + (inactiveUserCount || 0); i += 1) {
     await User.create({
       username: `user${i + 1}`,
       email: `user${i + 1}@mail.com`,
-      password: 'P4ssword',
+      password: hash,
       inactive: i >= activeUserCount,
     });
   }
@@ -135,6 +145,13 @@ describe('Listing Users', () => {
 
     expect(response.body.size).toBe(10);
     expect(response.body.page).toBe(0);
+  });
+
+  it('returns user page without logged in user when request has valid authorization', async () => {
+    //
+    await addUsers(11);
+    const response = await getUsers({ auth: { email: 'user1@mail.com', password: 'P4ssword' } });
+    expect(response.body.totalPages).toBe(1);
   });
 });
 
