@@ -14,13 +14,41 @@ beforeEach(async () => {
   await User.destroy({ truncate: true });
 });
 
-const getUsers = (options: { auth?: { email: string; password: string } } = {}) => {
+const auth = async (
+  options: {
+    auth?: {
+      email: string;
+      password: string;
+    };
+    token?: string;
+  } = {}
+) => {
+  let token: string | undefined;
+  if (options.auth) {
+    const response = await request(app).post('/api/1.0/auth').send(options.auth);
+    token = response.body.token;
+  }
+
+  return token;
+};
+
+const getUsers = (options: { auth?: { email: string; password: string }; token?: string } = {}) => {
   const agent = request(app).get('/api/1.0/users');
 
-  if (options.auth) {
-    const { email, password } = options.auth;
-    agent.auth(email, password);
+  /**
+   * TOKEN AUTH
+   */
+  if (options.token) {
+    agent.set('Authorization', `Bearer ${options.token}`);
   }
+
+  /**
+   * BASIC AUTH
+   */
+  // if (options.auth) {
+  //   const { email, password } = options.auth;
+  //   agent.auth(email, password);
+  // }
 
   return agent;
 };
@@ -150,7 +178,11 @@ describe('Listing Users', () => {
   it('returns user page without logged in user when request has valid authorization', async () => {
     //
     await addUsers(11);
-    const response = await getUsers({ auth: { email: 'user1@mail.com', password: 'P4ssword' } });
+
+    // geting token
+    const token = await auth({ auth: { email: 'user1@mail.com', password: 'P4ssword' } });
+
+    const response = await getUsers({ token: token });
     expect(response.body.totalPages).toBe(1);
   });
 });

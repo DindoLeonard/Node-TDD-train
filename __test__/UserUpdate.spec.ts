@@ -33,29 +33,50 @@ const putUser = async (
       email: string;
       password: string;
     };
+    token?: string;
   } = {}
 ) => {
-  //
+  // JWT AUTHORIZATION - IMPORTANT
+  let token: string | undefined;
+
+  if (options.auth) {
+    const response = await request(app).post('/api/1.0/auth').send(options.auth);
+    token = response.body.token;
+  }
+
   const agent = request(app).put('/api/1.0/users/' + id);
 
-  // BASIC AUTHORIZATION CREATION - IMPORTANT
-  if (options.auth) {
-    const { email, password } = options.auth;
+  if (token) {
+    agent.set({ Authorization: `Bearer ${token}` });
+    // agent.set('Authorization', `Bearer ${token}`);
+  }
 
-    /**
-     * MANUAL WAY
-     */
-    // const merged = `${email}: ${password}`;
-    // const base64 = Buffer.from(merged).toString('base64');
-    // agent.set('Authorization', `Basic ${base64}`);
-
-    /**
-     * SUPERTEST ABSTRACTION
-     */
-    agent.auth(email, password);
+  if (options.token) {
+    agent.set('Authorization', `Bearer ${token}`);
   }
 
   return agent.send({ ...body });
+
+  /**
+   * BASIC AUTHORIZATION CREATION - IMPORTANT
+   */
+  // if (options.auth) {
+  //   const { email, password } = options.auth;
+
+  //   /**
+  //    * MANUAL WAY
+  //    */
+  //   // const merged = `${email}: ${password}`;
+  //   // const base64 = Buffer.from(merged).toString('base64');
+  //   // agent.set('Authorization', `Basic ${base64}`);
+
+  //   /**
+  //    * SUPERTEST ABSTRACTION
+  //    */
+  //   agent.auth(email, password);
+  // }
+
+  // return agent.send({ ...body });
 };
 
 describe('User Update', () => {
@@ -131,5 +152,10 @@ describe('User Update', () => {
 
     const inDBUser = await User.findOne({ where: { id: savedUser.id } });
     expect(inDBUser?.username).toBe(validUpdate.username);
+  });
+
+  it('returns 403 when token is not valid', async () => {
+    const response = await putUser(5, null, { token: '123' });
+    expect(response.status).toBe(403);
   });
 });

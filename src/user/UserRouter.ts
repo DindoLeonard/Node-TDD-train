@@ -5,7 +5,8 @@ import HttpException from '../errors/HttpException';
 import pagination from '../middleware/pagination';
 import ForbiddenException from '../errors/ForbiddenException';
 // import bcrypt from 'bcrypt';
-import basicAuthentication from '../middleware/basicAuthentication';
+// import basicAuthentication from '../middleware/basicAuthentication';
+import tokenAuthentication from '../middleware/tokenAuthentication';
 
 const router = Router();
 
@@ -84,7 +85,7 @@ router.post('/api/1.0/users/token/:token', async (req: Request, res: Response, n
 router.get(
   '/api/1.0/users',
   pagination,
-  basicAuthentication,
+  tokenAuthentication,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const authenticatedUser = req.authenticatedUser;
@@ -110,7 +111,7 @@ router.get('/api/1.0/users/:id', async (req: Request, res: Response, next: NextF
   }
 });
 
-router.put('/api/1.0/users/:id', basicAuthentication, async (req: Request, res: Response, next: NextFunction) => {
+router.put('/api/1.0/users/:id', tokenAuthentication, async (req: Request, res: Response, next: NextFunction) => {
   //
   const authenticatedUser = req.authenticatedUser;
 
