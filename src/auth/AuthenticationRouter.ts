@@ -3,6 +3,7 @@ import HttpException from '../errors/HttpException';
 import UserService from '../user/UserService';
 import bcrypt from 'bcrypt';
 import { check, validationResult } from 'express-validator';
+import TokenService from './TokenService';
 
 const router = express.Router();
 
@@ -33,9 +34,13 @@ router.post('/api/1.0/auth', check('email').isEmail(), async (req: Request, res:
       throw new HttpException(403, 'Account is inactive');
     }
 
+    // CREATE TOKEN
+    const token = TokenService.createToken(user);
+
     res.send({
       id: user?.id,
       username: user?.username,
+      token,
     });
   } catch (err) {
     next(err);
