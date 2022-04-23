@@ -1,15 +1,16 @@
 import bcrypt from 'bcrypt';
 import User from './User';
-import crypto from 'crypto';
+// import crypto from 'crypto';
 import EmailService from '../email/EmailService';
 import Sequelize from 'sequelize';
 import sequelize from '../config/database';
 // import { EmailException } from '../email/EmailException';
 import HttpException from '../errors/HttpException';
+import generator from '../shared/generator';
 
-const generateToken = (length: number): string => {
-  return crypto.randomBytes(length).toString('hex').substring(0, length);
-};
+// const generateToken = (length: number): string => {
+//   return crypto.randomBytes(length).toString('hex').substring(0, length);
+// };
 
 const save = async (body: { username: string; email: string; password: string }) => {
   const saltRounds = 10;
@@ -22,7 +23,7 @@ const save = async (body: { username: string; email: string; password: string })
     username,
     email,
     password: hash,
-    activationToken: generateToken(16),
+    activationToken: generator.randomString(16),
   };
 
   const transaction = await sequelize.transaction();
