@@ -13,7 +13,7 @@ const tokenAuthentication = async (req: Request, res: Response, next: NextFuncti
     const token = authorization.substring(7);
 
     try {
-      const user = TokenService.verify(token) as User;
+      const user = (await TokenService.verify(token)) as User;
 
       req.authenticatedUser = user;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
