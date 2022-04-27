@@ -1,4 +1,5 @@
 import { Model, DataTypes, InferAttributes, InferCreationAttributes, CreationOptional } from 'sequelize';
+import Token from '../auth/Token';
 import sequelize from '../config/database';
 
 class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
@@ -34,5 +35,7 @@ User.init(
     modelName: 'user',
   }
 );
+
+User.hasMany(Token, { onDelete: 'cascade', foreignKey: 'userId' });
 
 export default User;
