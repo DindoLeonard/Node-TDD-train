@@ -102,6 +102,10 @@ const updateUser = async (id: string, updatedBody: { username: string; email: st
   }
 };
 
+const deleteUser = async (id: string) => {
+  await User.destroy({ where: { id } });
+};
+
 const UserService = {
   save,
   findByEmail,
@@ -109,6 +113,7 @@ const UserService = {
   getUsers,
   getUser,
   updateUser,
+  deleteUser,
 };
 
 export default UserService;
