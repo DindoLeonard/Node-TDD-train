@@ -1,10 +1,11 @@
-import { Model, DataTypes, InferAttributes, InferCreationAttributes, CreationOptional } from 'sequelize';
+import { Model, DataTypes, InferAttributes, InferCreationAttributes, CreationOptional, Sequelize } from 'sequelize';
 import sequelize from '../config/database';
 
 class Token extends Model<InferAttributes<Token>, InferCreationAttributes<Token>> {
   declare id?: CreationOptional<number>;
   declare token: string;
   declare userId?: number;
+  declare lastUsedAt?: Date;
 }
 
 Token.init(
@@ -15,9 +16,12 @@ Token.init(
     // userId: {
     //   type: DataTypes.INTEGER,
     // },
+    lastUsedAt: {
+      type: DataTypes.DATE,
+    },
   },
 
-  { sequelize, modelName: 'token' }
+  { sequelize, modelName: 'token', timestamps: false }
 );
 
 export default Token;

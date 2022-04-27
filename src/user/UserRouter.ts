@@ -6,7 +6,7 @@ import pagination from '../middleware/pagination';
 import ForbiddenException from '../errors/ForbiddenException';
 // import bcrypt from 'bcrypt';
 // import basicAuthentication from '../middleware/basicAuthentication';
-import tokenAuthentication from '../middleware/tokenAuthentication';
+// import tokenAuthentication from '../middleware/tokenAuthentication';
 // import TokenService from '../auth/TokenService';
 
 const router = Router();
@@ -83,24 +83,19 @@ router.post('/api/1.0/users/token/:token', async (req: Request, res: Response, n
   }
 });
 
-router.get(
-  '/api/1.0/users',
-  pagination,
-  tokenAuthentication,
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const authenticatedUser = req.authenticatedUser;
-      //
-      const { page, size } = req.pagination;
+router.get('/api/1.0/users', pagination, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const authenticatedUser = req.authenticatedUser;
+    //
+    const { page, size } = req.pagination;
 
-      const users = await UserService.getUsers(page, size, authenticatedUser);
+    const users = await UserService.getUsers(page, size, authenticatedUser);
 
-      res.send(users);
-    } catch (err) {
-      next(err);
-    }
+    res.send(users);
+  } catch (err) {
+    next(err);
   }
-);
+});
 
 router.get('/api/1.0/users/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -112,7 +107,7 @@ router.get('/api/1.0/users/:id', async (req: Request, res: Response, next: NextF
   }
 });
 
-router.put('/api/1.0/users/:id', tokenAuthentication, async (req: Request, res: Response, next: NextFunction) => {
+router.put('/api/1.0/users/:id', async (req: Request, res: Response, next: NextFunction) => {
   //
   const authenticatedUser = req.authenticatedUser;
 
@@ -125,7 +120,7 @@ router.put('/api/1.0/users/:id', tokenAuthentication, async (req: Request, res: 
   return res.send();
 });
 
-router.delete('/api/1.0/users/:id', tokenAuthentication, async (req: Request, res: Response, next: NextFunction) => {
+router.delete('/api/1.0/users/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authenticatedUser = req.authenticatedUser;
 
