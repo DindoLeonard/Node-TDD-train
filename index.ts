@@ -2,6 +2,7 @@ import app from './src/app';
 import sequelize from './src/config/database';
 import User from './src/user/User';
 import bcrypt from 'bcrypt';
+import TokenService from './src/auth/TokenService';
 
 const addUsers = async (activeUserCount: number, inactiveUserCount = 0) => {
   const hash = await bcrypt.hash('P4ssword', 10);
@@ -21,8 +22,8 @@ sequelize.sync({ force: true }).then(async () => {
   await addUsers(25);
 });
 
-console.log('env ' + process.env.NODE_ENV);
+TokenService.scheduleCleanup();
 
 app.listen(3000, () => {
-  console.log(`app is running`);
+  console.log(`app is running in ${process.env.NODE_ENV}`);
 });
