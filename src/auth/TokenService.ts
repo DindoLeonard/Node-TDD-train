@@ -23,4 +23,8 @@ const verify = async (token: string) => {
   // return jwt.verify(token, 'this-is-our-secret');
 };
 
-export default { createToken, verify };
+const deleteToken = async (token: string) => {
+  await Token.destroy({ where: { token } });
+};
+
+export default { createToken, verify, deleteToken };
