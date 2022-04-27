@@ -7,6 +7,7 @@ import ForbiddenException from '../errors/ForbiddenException';
 // import bcrypt from 'bcrypt';
 // import basicAuthentication from '../middleware/basicAuthentication';
 import tokenAuthentication from '../middleware/tokenAuthentication';
+// import TokenService from '../auth/TokenService';
 
 const router = Router();
 
@@ -133,6 +134,13 @@ router.delete('/api/1.0/users/:id', tokenAuthentication, async (req: Request, re
     }
 
     await UserService.deleteUser(req.params.id);
+    // const authorization = req.headers.authorization;
+
+    // const token = authorization?.substring(7);
+
+    // if (token) {
+    //   await TokenService.deleteToken(token);
+    // }
 
     res.send();
   } catch (err) {

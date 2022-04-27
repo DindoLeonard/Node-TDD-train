@@ -11,7 +11,7 @@ beforeAll(async () => {
 
 // clearing the user table before each test
 beforeEach(async () => {
-  await User.destroy({ truncate: true });
+  await User.destroy({ truncate: true, cascade: true });
 });
 
 const auth = async (
