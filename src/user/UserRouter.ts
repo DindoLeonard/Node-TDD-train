@@ -4,6 +4,7 @@ import { check, validationResult } from 'express-validator';
 import HttpException from '../errors/HttpException';
 import pagination from '../middleware/pagination';
 import ForbiddenException from '../errors/ForbiddenException';
+import NotFoundException from '../errors/NotFoundException';
 // import bcrypt from 'bcrypt';
 // import basicAuthentication from '../middleware/basicAuthentication';
 // import tokenAuthentication from '../middleware/tokenAuthentication';
@@ -142,5 +143,23 @@ router.delete('/api/1.0/users/:id', async (req: Request, res: Response, next: Ne
     next(err);
   }
 });
+
+router.post(
+  '/api/1.0/password-reset',
+  check('email').isEmail().withMessage('E-mail is not valid'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      //
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        throw new HttpException(400, 'E-mail is not valid', errors.array());
+      }
+
+      throw new NotFoundException('E-mail not found');
+    } catch (err) {
+      next(err);
+    }
+  }
+);
 
 export default router;

@@ -7,6 +7,7 @@ import sequelize from '../config/database';
 // import { EmailException } from '../email/EmailException';
 import HttpException from '../errors/HttpException';
 import generator from '../shared/generator';
+import NotFoundException from '../errors/NotFoundException';
 
 // const generateToken = (length: number): string => {
 //   return crypto.randomBytes(length).toString('hex').substring(0, length);
@@ -86,7 +87,7 @@ const getUser = async (id: string) => {
   const user = await User.findOne({ where: { id: id, inactive: false }, attributes: ['id', 'username', 'email'] });
 
   if (!user) {
-    throw new HttpException(404, 'User not found');
+    throw new NotFoundException('User not found');
   }
 
   return user;
