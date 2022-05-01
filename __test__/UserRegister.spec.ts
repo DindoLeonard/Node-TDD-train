@@ -1,14 +1,23 @@
 import request from 'supertest';
 import app from '../src/app';
 import User from '../src/user/User';
-import sequalize from '../src/config/database';
+import sequelize from '../src/config/database';
 // import nodemailerStub from 'nodemailer-stub';
 // import EmailService from '../src/email/EmailService';
 import { SMTPServer } from 'smtp-server';
+import config from 'config';
 
 let lastMail: string;
 let server: SMTPServer;
 let simulateSmtpFailure = false;
+
+const mailConfig = config.get('mail') as {
+  host: string;
+  port: number;
+  tls: {
+    rejectUnauthorized: boolean;
+  };
+};
 
 beforeAll(async () => {
   server = new SMTPServer({
@@ -34,9 +43,9 @@ beforeAll(async () => {
     },
   });
 
-  await server.listen(8587, 'localhost');
+  await server.listen(mailConfig.port, 'localhost');
 
-  await sequalize.sync();
+  await sequelize.sync();
 
   /**
    * SETTING TIMEOUT FOR TEST
