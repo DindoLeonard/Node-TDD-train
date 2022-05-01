@@ -117,6 +117,12 @@ const passwordResetRequest = async (email: string) => {
 
   user.passwordResetToken = generator.randomString(16);
   await user.save();
+
+  try {
+    await EmailService.sendPasswordReset(email, user.passwordResetToken);
+  } catch (err) {
+    throw new HttpException(502, 'E-mail Failure');
+  }
 };
 
 const UserService = {
