@@ -107,6 +107,18 @@ const deleteUser = async (id: string) => {
   await User.destroy({ where: { id } });
 };
 
+const passwordResetRequest = async (email: string) => {
+  //
+  const user = await UserService.findByEmail(email);
+
+  if (!user) {
+    throw new NotFoundException('E-mail not found');
+  }
+
+  user.passwordResetToken = generator.randomString(16);
+  await user.save();
+};
+
 const UserService = {
   save,
   findByEmail,
@@ -115,6 +127,7 @@ const UserService = {
   getUser,
   updateUser,
   deleteUser,
+  passwordResetRequest,
 };
 
 export default UserService;

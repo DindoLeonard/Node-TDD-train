@@ -155,6 +155,14 @@ router.post(
         throw new HttpException(400, 'E-mail is not valid', errors.array());
       }
 
+      await UserService.passwordResetRequest(req.body.email);
+
+      const user = await UserService.findByEmail(req.body.email);
+
+      if (user) {
+        return res.send({ message: 'Check your e-mail for resetting your password' });
+      }
+
       throw new NotFoundException('E-mail not found');
     } catch (err) {
       next(err);
