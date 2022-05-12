@@ -72,7 +72,7 @@ const addUser = async (user = { ...activeUser }) => {
 
 const postPasswordReset = (email: string | null = 'user1@mail.com') => {
   //
-  const agent = request(app).post('/api/1.0/password-reset');
+  const agent = request(app).post('/api/1.0/user/password');
 
   return agent.send({ email });
 };
@@ -81,7 +81,7 @@ describe('Password Reset Request', () => {
   //
   it('returns 404 when a password reset request is sent from unknown e-mail', async () => {
     //
-    const response = await request(app).post('/api/1.0/password-reset').send({ email: 'user1@mail.com' });
+    const response = await request(app).post('/api/1.0/user/password').send({ email: 'user1@mail.com' });
     expect(response.status).toBe(404);
   });
 
@@ -89,7 +89,7 @@ describe('Password Reset Request', () => {
     //
     const nowInMilliseconds = new Date().getTime();
     const response = await postPasswordReset();
-    expect(response.body.path).toBe('/api/1.0/password-reset');
+    expect(response.body.path).toBe('/api/1.0/user/password');
     expect(response.body.timestamp).toBeGreaterThan(nowInMilliseconds);
     expect(response.body.message).toBe('E-mail not found');
   });
@@ -125,7 +125,7 @@ describe('Password Reset Request', () => {
   it('sends a password reset email with passwordResetToken', async () => {
     //
     const user = await addUser();
-    await request(app).post('/api/1.0/password-reset').send({ email: 'user1@mail.com' });
+    await request(app).post('/api/1.0/user/password').send({ email: 'user1@mail.com' });
     const userInDB = await User.findOne({ where: { email: user.email } });
     const passwordResetToken = userInDB?.passwordResetToken;
 
