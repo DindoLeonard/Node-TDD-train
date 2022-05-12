@@ -9,6 +9,7 @@ import NotFoundException from '../errors/NotFoundException';
 // import basicAuthentication from '../middleware/basicAuthentication';
 // import tokenAuthentication from '../middleware/tokenAuthentication';
 // import TokenService from '../auth/TokenService';
+import User from './User';
 
 const router = Router();
 
@@ -164,6 +165,52 @@ router.post(
       }
 
       throw new NotFoundException('E-mail not found');
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+const passwordResetTokenValidator = async (req: Request, res: Response, next: NextFunction) => {
+  const user = await User.findOne({ where: { passwordResetToken: req.body.passwordResetToken } });
+
+  if (!user) {
+    return next(
+      new HttpException(
+        403,
+        'You are not authorized to update your password. Please follow the password reset steps again'
+      )
+    );
+  }
+
+  next();
+};
+
+router.put(
+  '/api/1.0/user/password',
+  passwordResetTokenValidator,
+  check('password')
+    .notEmpty()
+    .withMessage('Password cannot be null')
+    .bail()
+    .isLength({ min: 6 })
+    .withMessage('Password must be atleast 6 characters')
+    .bail()
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/)
+    .withMessage('Password must have at least 1 uppercase, 1 lowercase letter and 1 number'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const errors = validationResult(req);
+
+      if (!errors.isEmpty()) {
+        throw new HttpException(400, 'Validation Failure', errors.array());
+        // return res.status(400).send();
+      }
+
+      throw new ForbiddenException(
+        403,
+        'You are not authorized to update your password. Please follow the password reset steps again'
+      );
     } catch (err) {
       next(err);
     }
