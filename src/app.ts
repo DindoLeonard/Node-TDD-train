@@ -4,6 +4,10 @@ import ErrorHandler from './errors/ErrorHandler';
 import UserRouter from './user/UserRouter';
 import AuthenticationRouter from './auth/AuthenticationRouter';
 import tokenAuthentication from './middleware/tokenAuthentication';
+import FileService from './file/FileService';
+
+// create folders before app is initialized
+FileService.createFolders();
 
 const app = express();
 
