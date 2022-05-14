@@ -9,6 +9,7 @@ import HttpException from '../errors/HttpException';
 import generator from '../shared/generator';
 import NotFoundException from '../errors/NotFoundException';
 import TokenService from '../auth/TokenService';
+import FileService from '../file/FileService';
 
 // const generateToken = (length: number): string => {
 //   return crypto.randomBytes(length).toString('hex').substring(0, length);
@@ -99,7 +100,7 @@ const getUser = async (id: string) => {
 
 const updateUser = async (
   id: string,
-  updatedBody: { username: string; email: string; inactive: string; image: string }
+  updatedBody: { username: string; email: string; inactive: string; image?: string }
 ) => {
   //
   const user = await User.findOne({ where: { id } });
@@ -107,8 +108,14 @@ const updateUser = async (
   if (user) {
     user.username = updatedBody.username;
 
+    // FILE SERVICE - pass base64 image file
+    if (updatedBody.image) {
+      const filename = await FileService.saveProfileImage(updatedBody.image);
+      user.image = filename;
+    }
+
     // saving image in base64 format
-    user.image = updatedBody.image;
+    // user.image = filename;
     await user?.save();
 
     return {
