@@ -10,6 +10,7 @@ class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   declare inactive: boolean | undefined;
   declare activationToken: string | undefined | null;
   declare passwordResetToken: string | undefined | null;
+  declare image: string | undefined;
 }
 
 User.init(
@@ -31,6 +32,9 @@ User.init(
       type: DataTypes.STRING,
     },
     passwordResetToken: {
+      type: DataTypes.STRING,
+    },
+    image: {
       type: DataTypes.STRING,
     },
   },
