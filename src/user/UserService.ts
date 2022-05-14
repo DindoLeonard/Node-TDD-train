@@ -8,6 +8,7 @@ import sequelize from '../config/database';
 import HttpException from '../errors/HttpException';
 import generator from '../shared/generator';
 import NotFoundException from '../errors/NotFoundException';
+import TokenService from '../auth/TokenService';
 
 // const generateToken = (length: number): string => {
 //   return crypto.randomBytes(length).toString('hex').substring(0, length);
@@ -115,6 +116,7 @@ const passwordResetRequest = async (email: string) => {
     throw new NotFoundException('E-mail not found');
   }
 
+  // generate password reset token
   user.passwordResetToken = generator.randomString(16);
   await user.save();
 
@@ -123,6 +125,37 @@ const passwordResetRequest = async (email: string) => {
   } catch (err) {
     throw new HttpException(502, 'E-mail Failure');
   }
+};
+
+const updatePassword = async (updateRequest: {
+  passwordResetRequest: string;
+  password: string;
+  passwordResetToken: string;
+}) => {
+  const user = await findByPasswordResetToken(updateRequest.passwordResetToken);
+  const salt = 10;
+  const hash = await bcrypt.hash(updateRequest.password, salt);
+
+  if (user) {
+    user.password = hash;
+    // delete token after user password update
+    user.passwordResetToken = null;
+
+    user.inactive = false;
+
+    user.activationToken = null;
+
+    await user.save();
+
+    if (user.id) {
+      await TokenService.clearTokens(user.id.toString());
+    }
+  }
+};
+
+const findByPasswordResetToken = (token: string) => {
+  //
+  return User.findOne({ where: { passwordResetToken: token } });
 };
 
 const UserService = {
@@ -134,6 +167,8 @@ const UserService = {
   updateUser,
   deleteUser,
   passwordResetRequest,
+  updatePassword,
+  findByPasswordResetToken,
 };
 
 export default UserService;

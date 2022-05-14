@@ -9,7 +9,7 @@ import NotFoundException from '../errors/NotFoundException';
 // import basicAuthentication from '../middleware/basicAuthentication';
 // import tokenAuthentication from '../middleware/tokenAuthentication';
 // import TokenService from '../auth/TokenService';
-import User from './User';
+// import User from './User';
 
 const router = Router();
 
@@ -172,7 +172,7 @@ router.post(
 );
 
 const passwordResetTokenValidator = async (req: Request, res: Response, next: NextFunction) => {
-  const user = await User.findOne({ where: { passwordResetToken: req.body.passwordResetToken } });
+  const user = await UserService.findByPasswordResetToken(req.body.passwordResetToken);
 
   if (!user) {
     return next(
@@ -204,13 +204,11 @@ router.put(
 
       if (!errors.isEmpty()) {
         throw new HttpException(400, 'Validation Failure', errors.array());
-        // return res.status(400).send();
       }
 
-      throw new ForbiddenException(
-        403,
-        'You are not authorized to update your password. Please follow the password reset steps again'
-      );
+      await UserService.updatePassword(req.body);
+
+      res.send();
     } catch (err) {
       next(err);
     }
