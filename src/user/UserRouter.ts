@@ -117,9 +117,9 @@ router.put('/api/1.0/users/:id', async (req: Request, res: Response, next: NextF
     return next(new ForbiddenException());
   }
 
-  await UserService.updateUser(req.params.id, req.body);
+  const user = await UserService.updateUser(req.params.id, req.body);
 
-  return res.send();
+  return res.send(user);
 });
 
 router.delete('/api/1.0/users/:id', async (req: Request, res: Response, next: NextFunction) => {
