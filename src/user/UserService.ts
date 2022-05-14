@@ -71,7 +71,7 @@ const getUsers = async (page = 0, size = 10, authenticatedUser: User) => {
         [Sequelize.Op.not]: id,
       },
     },
-    attributes: ['id', 'username', 'email'],
+    attributes: ['id', 'username', 'email', 'image'],
     limit: size,
     offset: page * size,
   });
@@ -85,7 +85,10 @@ const getUsers = async (page = 0, size = 10, authenticatedUser: User) => {
 };
 
 const getUser = async (id: string) => {
-  const user = await User.findOne({ where: { id: id, inactive: false }, attributes: ['id', 'username', 'email'] });
+  const user = await User.findOne({
+    where: { id: id, inactive: false },
+    attributes: ['id', 'username', 'email', 'image'],
+  });
 
   if (!user) {
     throw new NotFoundException('User not found');
@@ -107,6 +110,13 @@ const updateUser = async (
     // saving image in base64 format
     user.image = updatedBody.image;
     await user?.save();
+
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      image: user.image,
+    };
   }
 };
 

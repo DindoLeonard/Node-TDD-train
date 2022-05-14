@@ -177,4 +177,21 @@ describe('User Update', () => {
 
     expect(inDBUser?.image).toBeTruthy();
   });
+
+  it('retuns success body having only id, username, email and image', async () => {
+    //
+    const filePath = path.join('.', '__test__', 'resources', 'test-png.png');
+
+    // will return file as string in base64
+    const fileInBase64 = fs.readFileSync(filePath, { encoding: 'base64' });
+
+    const savedUser = await addUser();
+    const validUpdate = { username: 'user1-updated', image: fileInBase64 };
+
+    const response = await putUser(savedUser.id, validUpdate, {
+      auth: { email: 'user1@mail.com', password: 'P4ssword' },
+    });
+
+    expect(Object.keys(response.body)).toEqual(['id', 'username', 'email', 'image']);
+  });
 });
