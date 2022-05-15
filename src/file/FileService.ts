@@ -42,7 +42,14 @@ const saveProfileImage = async (base64File: string) => {
   // return filename;
 };
 
+const deleteProfileImage = async (filename: string) => {
+  //
+  const filePath = path.join(profileFolder, filename);
+  await fs.promises.unlink(filePath);
+};
+
 export default {
   createFolders,
   saveProfileImage,
+  deleteProfileImage,
 };
