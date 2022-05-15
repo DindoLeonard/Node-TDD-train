@@ -20,15 +20,15 @@ beforeEach(async () => {
 });
 
 // clean the upload folder in test environment
-afterAll(() => {
-  //
-  const files = fs.readdirSync(profileDirectory);
+// afterAll(() => {
+//   //
+//   const files = fs.readdirSync(profileDirectory);
 
-  for (const file of files) {
-    // delete
-    fs.unlinkSync(path.join(profileDirectory, file));
-  }
-});
+//   for (const file of files) {
+//     // delete
+//     fs.unlinkSync(path.join(profileDirectory, file));
+//   }
+// });
 
 const activeUser = { username: 'user1', email: 'user1@mail.com', password: 'P4ssword', inactive: false };
 
@@ -224,7 +224,7 @@ describe('User Update', () => {
 
     const inDBUser = await User.findOne({ where: { id: savedUser.id } });
 
-    const profileImagePath = path.join('.', uploadDir, profileDir, inDBUser?.image as string);
+    const profileImagePath = path.join(profileDirectory, inDBUser?.image as string);
 
     expect(inDBUser).toBeTruthy();
     expect(fs.existsSync(profileImagePath)).toBe(true);
