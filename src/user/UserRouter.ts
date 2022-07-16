@@ -117,6 +117,19 @@ router.put(
     .bail() // to bail and not continue after the previous check
     .isLength({ min: 4, max: 32 })
     .withMessage('Must have min 4 and max 32 characters'),
+  check('image').custom((imageAsBase64String) => {
+    if (!imageAsBase64String) {
+      return true;
+    }
+
+    const buffer = Buffer.from(imageAsBase64String, 'base64');
+    // if image exceeds 2mb
+    if (buffer.length > 2 * 1024 * 1024) {
+      throw new Error('Your profile image cannot be bigger than 2mb');
+    }
+
+    return true;
+  }),
   async (req: Request, res: Response, next: NextFunction) => {
     //
     const authenticatedUser = req.authenticatedUser;
