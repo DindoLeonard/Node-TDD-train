@@ -19,7 +19,8 @@ FileService.createFolders();
 
 const app = express();
 
-app.use(express.json());
+// set limit to 3mb instead of default 2mb
+app.use(express.json({ limit: '3mb' }));
 
 // Serving static files
 app.use('/images', express.static(profileFolder, { maxAge: ONE_YEAR_IN_MILLIS }));

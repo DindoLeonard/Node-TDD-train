@@ -108,12 +108,11 @@ const updateUser = async (
   if (user) {
     user.username = updatedBody.username;
 
-    if (user.image) {
-      await FileService.deleteProfileImage(user.image);
-    }
-
     // FILE SERVICE - pass base64 image file
     if (updatedBody.image) {
+      if (user.image) {
+        await FileService.deleteProfileImage(user.image);
+      }
       const filename = await FileService.saveProfileImage(updatedBody.image);
       user.image = filename;
     }
