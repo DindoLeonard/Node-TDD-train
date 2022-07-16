@@ -253,4 +253,20 @@ describe('User Update', () => {
 
     expect(fs.existsSync(profileImagePath)).toBe(false);
   });
+
+  it.each`
+    field         | value             | message
+    ${'username'} | ${null}           | ${'Username cannot be null'}
+    ${'username'} | ${'usr'}          | ${'Must have min 4 and max 32 characters'}
+    ${'username'} | ${'a'.repeat(33)} | ${'Must have min 4 and max 32 characters'}
+  `('returns bad request with $message when username is updated with $value', async ({ value, message }) => {
+    const savedUser = await addUser();
+    const invalidUpdate = { username: value };
+    const response = await putUser(savedUser?.id, invalidUpdate, {
+      auth: { email: savedUser?.email, password: 'P4ssword' },
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.validationErrors.username).toBe(message);
+  });
 });
